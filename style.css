@@ -1,7 +1,7 @@
 :root {
-  --beige: #F3E7DD;
+  --beige: #C9AD7F;
   --panel: rgba(255,255,255,0.55);
-  --calendar-bg: rgba(255,255,255,0.85);
+  --card: rgba(255,255,255,0.75);
   --text: #0D0D0D;
   --blue: #0583F2;
   --sand: #A67D65;
@@ -12,7 +12,7 @@
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
-  background: linear-gradient(135deg, #F3E7DD 0%, #EFE1D5 100%);
+  background: linear-gradient(135deg, #C9AD7F 0%, #e6d2b3 100%);
   color: var(--text);
 }
 
@@ -26,55 +26,78 @@ body {
 
 .panel {
   background: var(--panel);
-  backdrop-filter: blur(20px);
-  border-radius: 32px;
+  backdrop-filter: blur(25px);
+  border-radius: 36px;
   padding: 30px;
-  box-shadow: 0 25px 60px rgba(0,0,0,0.06);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.08);
   overflow-y: auto;
 }
 
-.section h4 {
-  margin-bottom: 12px;
+/* TASKS */
+.task-section {
+  margin-bottom: 30px;
 }
 
-.carry-title { color: var(--sand); }
-.completed-title { color: var(--blue); }
-
 .task-card {
-  background: rgba(255,255,255,0.65);
-  padding: 18px;
-  border-radius: 22px;
-  margin-bottom: 14px;
+  background: var(--card);
+  padding: 20px;
+  border-radius: 26px;
+  margin-bottom: 15px;
   transition: 0.2s ease;
 }
 
 .task-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+  transform: translateY(-4px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.08);
 }
 
-.task-card.carry {
-  border-left: 4px solid var(--sand);
+.carry { color: var(--sand); }
+.completed { color: var(--blue); }
+
+/* CREATE CARD */
+.create-card {
+  background: var(--card);
+  padding: 30px;
+  border-radius: 32px;
 }
 
-.task-card.completed {
-  border-left: 4px solid var(--blue);
-  opacity: 0.7;
+input, textarea {
+  width: 100%;
+  padding: 18px;
+  border-radius: 24px;
+  border: none;
+  margin-bottom: 20px;
+  background: rgba(255,255,255,0.9);
+  font-size: 15px;
 }
 
-/* Calendar */
+button {
+  width: 100%;
+  padding: 18px;
+  border-radius: 28px;
+  border: none;
+  background: var(--blue);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+button:hover {
+  background: #0366d6;
+}
+
+/* CALENDAR */
 .center {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  position: relative;
 }
 
 .fc {
   width: 100% !important;
-  background: var(--calendar-bg) !important;
-  border-radius: 32px !important;
-  overflow: hidden !important;
+  background: transparent !important;
   border: none !important;
 }
 
@@ -84,46 +107,39 @@ body {
   border: none !important;
 }
 
-.fc-daygrid-day-frame {
-  border-radius: 18px !important;
+.fc-daygrid-day {
+  padding: 10px !important;
 }
 
-.fc-daygrid-day {
+.fc-daygrid-day-frame {
+  background: var(--card);
+  border-radius: 22px;
+  padding: 15px;
   transition: 0.2s ease;
 }
 
-.fc-daygrid-day:hover {
-  background: rgba(5,131,242,0.12) !important;
-  border-radius: 18px;
+.fc-daygrid-day-frame:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.08);
 }
 
-.fc-toolbar-title {
-  font-weight: 600;
-}
-
-.fc-toolbar {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-}
-
-/* Analytics Note */
+/* ANALYTICS */
 .analytics-note {
   position: absolute;
-  top: 30px;
-  right: 30px;
-  background: rgba(255,255,255,0.95);
-  padding: 20px;
-  border-radius: 22px;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+  top: 40px;
+  right: 40px;
+  background: white;
+  padding: 25px;
+  border-radius: 26px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.1);
   display: none;
 }
 
-/* Modal */
+/* MODAL */
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0,0,0,0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -140,6 +156,6 @@ body {
 .modal-content {
   background: white;
   padding: 40px;
-  border-radius: 30px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  border-radius: 36px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.2);
 }
