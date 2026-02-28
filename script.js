@@ -14,7 +14,9 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 let selectedDate = null;
+let calendar;
 
+// Auto login persistence
 auth.onAuthStateChanged(user => {
   if (user) {
     document.getElementById("login-container").style.display = "none";
@@ -23,40 +25,42 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-// 🔐 LOGIN
+// Login
 function login() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
 
   auth.signInWithEmailAndPassword(email, password)
-    .then(() => {
-      document.getElementById("login-container").style.display = "none";
-      document.getElementById("app-container").style.display = "block";
-      loadCalendar();
-    })
-    .catch((error) => {
-      document.getElementById("login-error").innerText = "Invalid email or password";
-      console.error(error);
+    .catch(() => {
+      document.getElementById("login-error").innerText =
+        "Invalid email or password";
     });
 }
 
+// Logout
 function logout() {
   auth.signOut();
   location.reload();
 }
 
-// 📅 CALENDAR
+// Calendar
 function loadCalendar() {
   const calendarEl = document.getElementById('calendar');
 
-  const calendar = new FullCalendar.Calendar(calendarEl, {
+  calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
     dateClick: function(info) {
+
       selectedDate = info.dateStr;
+
+      document.querySelectorAll(".fc-daygrid-day")
+        .forEach(el => el.classList.remove("selected-date"));
+
+      info.dayEl.classList.add("selected-date");
+
       document.getElementById("selected-date-title").innerText =
         "Tasks for " + selectedDate;
 
-      carryForwardTasks(selectedDate);
       loadTasks(selectedDate);
     }
   });
@@ -64,42 +68,49 @@ function loadCalendar() {
   calendar.render();
 }
 
-// ➕ ADD TASK
+// Add Task
 function addTask() {
-  const taskText = document.getElementById("new-task").value;
+  const taskText = document.getElementById("new-task").value.trim();
   if (!taskText || !selectedDate) return;
 
   db.collection("tasks").add({
     task: taskText,
     date: selectedDate,
     completed: false
+  }).then(() => {
+    document.getElementById("new-task").value = "";
+    loadTasks(selectedDate);
   });
-
-  document.getElementById("new-task").value = "";
-  loadTasks(selectedDate);
 }
 
-// 📥 LOAD TASKS
+// Load Tasks (NO duplication logic)
 function loadTasks(date) {
   const list = document.getElementById("task-list");
   list.innerHTML = "";
 
-  db.collection("tasks")
-    .where("date", "==", date)
-    .get()
-    .then(snapshot => {
-      snapshot.forEach(doc => {
-        const li = document.createElement("li");
-        li.innerText = doc.data().task;
+  db.collection("tasks").get().then(snapshot => {
+    snapshot.forEach(doc => {
+      const data = doc.data();
 
-        if (doc.data().completed) {
+      if (
+        data.date === date ||
+        (data.date < date && data.completed === false)
+      ) {
+        const li = document.createElement("li");
+        li.innerText = data.task;
+
+        if (data.completed && data.date === date) {
           li.classList.add("completed");
         }
 
-        li.onclick = () => toggleComplete(doc.id);
-        
+        li.onclick = () => {
+          if (data.date === date) {
+            toggleComplete(doc.id);
+          }
+        };
+
         const delBtn = document.createElement("button");
-        delBtn.innerText = "X";
+        delBtn.innerText = "✖";
         delBtn.onclick = (e) => {
           e.stopPropagation();
           deleteTask(doc.id);
@@ -107,43 +118,20 @@ function loadTasks(date) {
 
         li.appendChild(delBtn);
         list.appendChild(li);
-      });
+      }
     });
-}
-
-// ✅ TOGGLE COMPLETE
-function toggleComplete(id) {
-  const ref = db.collection("tasks").doc(id);
-  ref.get().then(doc => {
-    ref.update({
-      completed: !doc.data().completed
-    }).then(() => loadTasks(selectedDate));
   });
 }
 
-// ❌ DELETE
+// Mark Complete
+function toggleComplete(id) {
+  db.collection("tasks").doc(id).update({
+    completed: true
+  }).then(() => loadTasks(selectedDate));
+}
+
+// Delete
 function deleteTask(id) {
   db.collection("tasks").doc(id).delete()
     .then(() => loadTasks(selectedDate));
-}
-
-// 🔁 CARRY FORWARD
-function carryForwardTasks(currentDate) {
-  const prevDate = new Date(currentDate);
-  prevDate.setDate(prevDate.getDate() - 1);
-  const prevDateStr = prevDate.toISOString().split('T')[0];
-
-  db.collection("tasks")
-    .where("date", "==", prevDateStr)
-    .where("completed", "==", false)
-    .get()
-    .then(snapshot => {
-      snapshot.forEach(doc => {
-        db.collection("tasks").add({
-          task: doc.data().task,
-          date: currentDate,
-          completed: false
-        });
-      });
-    });
 }
