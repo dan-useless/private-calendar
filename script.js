@@ -15,6 +15,14 @@ const db = firebase.firestore();
 
 let selectedDate = null;
 
+auth.onAuthStateChanged(user => {
+  if (user) {
+    document.getElementById("login-container").style.display = "none";
+    document.getElementById("app-container").style.display = "block";
+    loadCalendar();
+  }
+});
+
 // 🔐 LOGIN
 function login() {
   const email = document.getElementById("email").value.trim();
