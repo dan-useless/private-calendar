@@ -35,27 +35,36 @@ function login() {
 }
 
 /* CALENDAR */
+
 function initCalendar() {
+
   if (calendarInstance) calendarInstance.destroy();
 
   calendarInstance = new FullCalendar.Calendar(
     document.getElementById("calendar"),
     {
       initialView: "dayGridMonth",
+
       headerToolbar: {
-        left: "prev,next today",
-        center: "title",
-        right: ""
+        left: "prev,next",
+        center: "",
+        right: "title"
       },
+
       dateClick: (info) => {
         selectedDate = info.dateStr;
         document.getElementById("selected-date-title")
           .innerText = "Tasks for " + selectedDate;
         loadTasks();
       },
-      dateMouseEnter: (info) => showAnalytics(info.dateStr),
-      dateMouseLeave: () =>
-        document.getElementById("analytics-note").style.display = "none"
+
+      dateMouseEnter: (info) => {
+        showAnalytics(info.dateStr);
+      },
+
+      dateMouseLeave: () => {
+        document.getElementById("analytics-note").style.display = "none";
+      }
     }
   );
 
@@ -63,6 +72,7 @@ function initCalendar() {
 }
 
 /* TASKS */
+
 function createTask() {
   if (!selectedDate) return;
 
@@ -110,30 +120,34 @@ function loadTasks() {
 }
 
 /* ANALYTICS */
+
 function showAnalytics(date) {
-  db.collection("tasks").where("date","==",date).get()
-  .then(snapshot => {
+  db.collection("tasks")
+    .where("date","==",date)
+    .get()
+    .then(snapshot => {
 
-    let total = snapshot.size;
-    let done = 0;
+      let total = snapshot.size;
+      let done = 0;
 
-    snapshot.forEach(doc => {
-      if (doc.data().completed) done++;
+      snapshot.forEach(doc => {
+        if (doc.data().completed) done++;
+      });
+
+      const note = document.getElementById("analytics-note");
+      note.innerHTML = `
+        <strong>${date}</strong><br><br>
+        Total: ${total}<br>
+        Completed: ${done}<br>
+        Pending: ${total - done}
+      `;
+
+      note.style.display = "block";
     });
-
-    const note = document.getElementById("analytics-note");
-    note.innerHTML = `
-      <strong>${date}</strong><br><br>
-      Total: ${total}<br>
-      Completed: ${done}<br>
-      Pending: ${total - done}
-    `;
-
-    note.style.display = "block";
-  });
 }
 
 /* MODAL */
+
 function openDelete(id) {
   deleteId = id;
   document.getElementById("delete-modal").classList.add("show");
