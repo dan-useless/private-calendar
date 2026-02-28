@@ -17,22 +17,18 @@ let selectedDate = null;
 
 // 🔐 LOGIN
 function login() {
-  const username = document.getElementById("username").value;
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
 
-  if (username !== "dany") {
-    document.getElementById("login-error").innerText = "Invalid username";
-    return;
-  }
-
-  auth.signInWithEmailAndPassword("danypoly10@gmail.com", password)
+  auth.signInWithEmailAndPassword(email, password)
     .then(() => {
       document.getElementById("login-container").style.display = "none";
       document.getElementById("app-container").style.display = "block";
       loadCalendar();
     })
-    .catch(() => {
-      document.getElementById("login-error").innerText = "Wrong password";
+    .catch((error) => {
+      document.getElementById("login-error").innerText = "Invalid email or password";
+      console.error(error);
     });
 }
 
