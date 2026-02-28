@@ -25,7 +25,7 @@ function login() {
     return;
   }
 
-  auth.signInWithEmailAndPassword("dany1102@gmail.com", password)
+  auth.signInWithEmailAndPassword("danypoly10@gmail.com", password)
     .then(() => {
       document.getElementById("login-container").style.display = "none";
       document.getElementById("app-container").style.display = "block";
