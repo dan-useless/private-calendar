@@ -31,7 +31,10 @@
 <div id="app-container" style="display:none;">
   <div class="header">
     <h2>📅 Private Task Calendar</h2>
-    <button class="logout-btn" onclick="logout()">Logout</button>
+    <div>
+      <button onclick="toggleDarkMode()">🌙</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
   </div>
 
   <div class="main-layout">
@@ -49,6 +52,14 @@
 
       <ul id="task-list"></ul>
     </div>
+  </div>
+
+  <div class="analytics">
+    <h3>Weekly Analytics</h3>
+    <div id="weekly-stats"></div>
+
+    <h3>Productivity Heatmap (Last 30 Days)</h3>
+    <div id="heatmap"></div>
   </div>
 </div>
 
