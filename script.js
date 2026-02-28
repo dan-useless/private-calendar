@@ -12,11 +12,11 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-let selectedDate = null;
-let deleteId = null;
+let selectedDate=null;
+let deleteId=null;
 
-auth.onAuthStateChanged(user => {
-  if (user) {
+auth.onAuthStateChanged(user=>{
+  if(user){
     document.getElementById("login-container").style.display="none";
     document.getElementById("app-container").style.display="block";
     initCalendar();
@@ -27,33 +27,34 @@ function login(){
   auth.signInWithEmailAndPassword(
     document.getElementById("email").value,
     document.getElementById("password").value
-  ).catch(()=> {
+  ).catch(()=>{
     document.getElementById("login-error").innerText="Invalid login";
   });
 }
 
 function initCalendar(){
-  const calendar = new FullCalendar.Calendar(
-    document.getElementById("calendar"), {
-    initialView:"dayGridMonth",
-    dateClick:(info)=>{
-      selectedDate = info.dateStr;
-      document.getElementById("selected-date-title")
-        .innerText="Tasks for "+selectedDate;
-      loadTasks();
-    },
-    dateMouseEnter:(info)=>{
-      showAnalytics(info.dateStr, info.dayEl);
-    },
-    dateMouseLeave:()=>{
-      document.getElementById("analytics-note").classList.add("hidden");
-    }
-  });
+  const calendar=new FullCalendar.Calendar(
+    document.getElementById("calendar"),{
+      initialView:"dayGridMonth",
+      dateClick:(info)=>{
+        selectedDate=info.dateStr;
+        document.getElementById("selected-date-title")
+          .innerText="Tasks for "+selectedDate;
+        loadTasks();
+      },
+      dateMouseEnter:(info)=>{
+        showAnalytics(info.dateStr);
+      },
+      dateMouseLeave:()=>{
+        document.getElementById("analytics-note").style.display="none";
+      }
+    });
   calendar.render();
 }
 
 function createTask(){
   if(!selectedDate) return;
+
   db.collection("tasks").add({
     title:document.getElementById("task-title").value,
     description:document.getElementById("task-desc").value,
@@ -69,9 +70,9 @@ function createTask(){
 }
 
 function loadTasks(){
-  const today = document.getElementById("today-tasks");
-  const carry = document.getElementById("carry-tasks");
-  const completed = document.getElementById("completed-tasks");
+  const today=document.getElementById("today-tasks");
+  const carry=document.getElementById("carry-tasks");
+  const completed=document.getElementById("completed-tasks");
 
   today.innerHTML="";
   carry.innerHTML="";
@@ -79,12 +80,13 @@ function loadTasks(){
 
   db.collection("tasks").get().then(snapshot=>{
     snapshot.forEach(doc=>{
-      const t = doc.data();
-      const card = document.createElement("div");
+      const t=doc.data();
+      const card=document.createElement("div");
       card.className="task-card";
-      card.innerHTML=`<strong>${t.title}</strong><br><small>${t.description}</small>
-        <span onclick="openDelete('${doc.id}')" style="float:right;cursor:pointer;">🗑</span>`;
-      card.dataset.id=doc.id;
+      card.innerHTML=`<strong>${t.title}</strong><br>
+        <small>${t.description}</small>
+        <span onclick="openDelete('${doc.id}')"
+        style="float:right;cursor:pointer;">🗑</span>`;
 
       if(t.completed && t.date===selectedDate){
         card.classList.add("completed");
@@ -104,41 +106,42 @@ function loadTasks(){
 }
 
 function initDrag(){
-  new Sortable(today-tasks,{group:"tasks"});
-  new Sortable(carry-tasks,{group:"tasks"});
-  new Sortable(completed-tasks,{
+  new Sortable(document.getElementById("today-tasks"),{group:"tasks"});
+  new Sortable(document.getElementById("carry-tasks"),{group:"tasks"});
+  new Sortable(document.getElementById("completed-tasks"),{
     group:"tasks",
     onAdd:(evt)=>{
-      const id=evt.item.dataset.id;
+      const id=evt.item.querySelector("span").getAttribute("onclick")
+        .match(/'(.+)'/)[1];
       db.collection("tasks").doc(id).update({completed:true});
     }
   });
 }
 
-function showAnalytics(date, el){
+function showAnalytics(date){
   db.collection("tasks").where("date","==",date).get()
   .then(snapshot=>{
-    let total=0, completed=0;
+    let total=0,completedCount=0;
     snapshot.forEach(doc=>{
       total++;
-      if(doc.data().completed) completed++;
+      if(doc.data().completed) completedCount++;
     });
     const note=document.getElementById("analytics-note");
     note.innerHTML=`<strong>${date}</strong><br>
       Total: ${total}<br>
-      Completed: ${completed}<br>
-      Pending: ${total-completed}`;
-    note.classList.remove("hidden");
+      Completed: ${completedCount}<br>
+      Pending: ${total-completedCount}`;
+    note.style.display="block";
   });
 }
 
 function openDelete(id){
   deleteId=id;
-  document.getElementById("delete-modal").classList.remove("hidden");
+  document.getElementById("delete-modal").classList.add("show");
 }
 
 function closeModal(){
-  document.getElementById("delete-modal").classList.add("hidden");
+  document.getElementById("delete-modal").classList.remove("show");
 }
 
 function confirmDelete(){
