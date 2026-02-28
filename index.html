@@ -1,18 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Private Command Center</title>
-
+  <title>Command Center</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- FullCalendar -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
-  <!-- SortableJS -->
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
-
-  <!-- Firebase v8 -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -35,38 +31,41 @@
 <div id="app-container" style="display:none;">
   <div class="layout">
 
-    <!-- LEFT -->
+    <!-- LEFT PANEL -->
     <div class="panel left">
       <h3 id="selected-date-title">Select a date</h3>
 
-      <div class="section">
+      <div class="task-section">
         <h4>Today</h4>
-        <div id="today-tasks" class="task-list"></div>
+        <div id="today-tasks"></div>
       </div>
 
-      <div class="section">
-        <h4 class="carry-title">Carried Forward</h4>
-        <div id="carry-tasks" class="task-list"></div>
+      <div class="task-section">
+        <h4 class="carry">Carried Forward</h4>
+        <div id="carry-tasks"></div>
       </div>
 
-      <div class="section">
-        <h4 class="completed-title">Completed</h4>
-        <div id="completed-tasks" class="task-list"></div>
+      <div class="task-section">
+        <h4 class="completed">Completed</h4>
+        <div id="completed-tasks"></div>
       </div>
     </div>
 
-    <!-- CENTER -->
+    <!-- CENTER PANEL -->
     <div class="panel center">
       <div id="calendar"></div>
       <div id="analytics-note" class="analytics-note"></div>
     </div>
 
-    <!-- RIGHT -->
+    <!-- RIGHT PANEL -->
     <div class="panel right">
       <h3>Create Task</h3>
-      <input type="text" id="task-title" placeholder="Task Title">
-      <textarea id="task-desc" placeholder="Task Description"></textarea>
-      <button onclick="createTask()">Create Task</button>
+
+      <div class="create-card">
+        <input type="text" id="task-title" placeholder="Title">
+        <textarea id="task-desc" placeholder="Description"></textarea>
+        <button onclick="createTask()">Create Task</button>
+      </div>
     </div>
 
   </div>
@@ -76,10 +75,8 @@
 <div id="delete-modal" class="modal">
   <div class="modal-content">
     <p>Delete this task permanently?</p>
-    <div class="modal-actions">
-      <button onclick="confirmDelete()">Delete</button>
-      <button onclick="closeModal()">Cancel</button>
-    </div>
+    <button onclick="confirmDelete()">Delete</button>
+    <button onclick="closeModal()">Cancel</button>
   </div>
 </div>
 
