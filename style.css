@@ -7,7 +7,9 @@
   --sand: #A67D65;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -16,65 +18,79 @@ body {
   color: var(--text);
 }
 
+/* ---------- LAYOUT ---------- */
+
 .layout {
   display: grid;
   grid-template-columns: 2fr 4fr 2fr;
-  gap: 40px;
-  padding: 40px;
-  height: 100vh;
+  gap: 32px;
+  padding: 32px;
+  min-height: 100vh;
 }
 
 .panel {
   background: var(--panel);
-  backdrop-filter: blur(25px);
-  border-radius: 36px;
-  padding: 30px;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.08);
+  backdrop-filter: blur(30px);
+  border-radius: 32px;
+  padding: 28px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.06);
   overflow-y: auto;
 }
 
-/* TASKS */
-.task-section {
-  margin-bottom: 30px;
+/* ---------- RESPONSIVE ---------- */
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 20px;
+  }
+
+  .panel {
+    padding: 20px;
+  }
 }
+
+/* ---------- TASKS ---------- */
 
 .task-card {
   background: var(--card);
-  padding: 20px;
-  border-radius: 26px;
-  margin-bottom: 15px;
+  padding: 18px;
+  border-radius: 24px;
+  margin-bottom: 14px;
   transition: 0.2s ease;
 }
 
 .task-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
 }
 
 .carry { color: var(--sand); }
 .completed { color: var(--blue); }
 
-/* CREATE CARD */
+/* ---------- CREATE ---------- */
+
 .create-card {
   background: var(--card);
-  padding: 30px;
-  border-radius: 32px;
+  padding: 28px;
+  border-radius: 28px;
 }
 
 input, textarea {
   width: 100%;
-  padding: 18px;
-  border-radius: 24px;
+  padding: 16px;
+  border-radius: 22px;
   border: none;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   background: rgba(255,255,255,0.9);
   font-size: 15px;
 }
 
 button {
   width: 100%;
-  padding: 18px;
-  border-radius: 28px;
+  padding: 16px;
+  border-radius: 26px;
   border: none;
   background: var(--blue);
   color: white;
@@ -87,12 +103,10 @@ button:hover {
   background: #0366d6;
 }
 
-/* CALENDAR */
+/* ---------- CALENDAR ---------- */
+
 .center {
   position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .fc {
@@ -107,45 +121,60 @@ button:hover {
   border: none !important;
 }
 
-.fc-daygrid-day {
-  padding: 10px !important;
-}
-
+/* Floating day cards */
 .fc-daygrid-day-frame {
   background: var(--card);
-  border-radius: 22px;
-  padding: 15px;
+  border-radius: 20px;
+  padding: 14px;
+  margin: 6px;
   transition: 0.2s ease;
 }
 
 .fc-daygrid-day-frame:hover {
   transform: translateY(-4px);
-  box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+  box-shadow: 0 14px 40px rgba(0,0,0,0.08);
 }
 
-/* ANALYTICS */
+/* Toolbar */
+.fc-toolbar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 20px !important;
+}
+
+.fc-toolbar-title {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+/* ---------- ANALYTICS ---------- */
+
 .analytics-note {
   position: absolute;
-  top: 40px;
-  right: 40px;
+  top: 20px;
+  right: 20px;
   background: white;
-  padding: 25px;
-  border-radius: 26px;
+  padding: 20px;
+  border-radius: 22px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.1);
   display: none;
+  z-index: 10;
 }
 
-/* MODAL */
+/* ---------- MODAL ---------- */
+
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.6);
   display: flex;
   justify-content: center;
   align-items: center;
   opacity: 0;
   visibility: hidden;
   transition: 0.2s ease;
+  z-index: 1000;
 }
 
 .modal.show {
@@ -156,6 +185,6 @@ button:hover {
 .modal-content {
   background: white;
   padding: 40px;
-  border-radius: 36px;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.2);
+  border-radius: 32px;
+  box-shadow: 0 40px 120px rgba(0,0,0,0.2);
 }
