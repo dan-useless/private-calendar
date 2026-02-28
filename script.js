@@ -12,141 +12,128 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-let selectedDate=null;
-let deleteId=null;
+let selectedDate = null;
+let deleteId = null;
 
-auth.onAuthStateChanged(user=>{
-  if(user){
-    document.getElementById("login-container").style.display="none";
-    document.getElementById("app-container").style.display="block";
+auth.onAuthStateChanged(user => {
+  if (user) {
+    document.getElementById("login-container").style.display = "none";
+    document.getElementById("app-container").style.display = "block";
     initCalendar();
   }
 });
 
-function login(){
+function login() {
   auth.signInWithEmailAndPassword(
     document.getElementById("email").value,
     document.getElementById("password").value
-  ).catch(()=>{
-    document.getElementById("login-error").innerText="Invalid login";
+  ).catch(() => {
+    document.getElementById("login-error").innerText = "Invalid login";
   });
 }
 
-function initCalendar(){
-  const calendar=new FullCalendar.Calendar(
-    document.getElementById("calendar"),{
-      initialView:"dayGridMonth",
-      dateClick:(info)=>{
-        selectedDate=info.dateStr;
+function initCalendar() {
+  const calendar = new FullCalendar.Calendar(
+    document.getElementById("calendar"), {
+      initialView: "dayGridMonth",
+      dateClick: (info) => {
+        selectedDate = info.dateStr;
         document.getElementById("selected-date-title")
-          .innerText="Tasks for "+selectedDate;
+          .innerText = "Tasks for " + selectedDate;
         loadTasks();
       },
-      dateMouseEnter:(info)=>{
-        showAnalytics(info.dateStr);
-      },
-      dateMouseLeave:()=>{
-        document.getElementById("analytics-note").style.display="none";
-      }
+      dateMouseEnter: (info) => showAnalytics(info.dateStr),
+      dateMouseLeave: () =>
+        document.getElementById("analytics-note").style.display = "none"
     });
+
   calendar.render();
 }
 
-function createTask(){
-  if(!selectedDate) return;
+function createTask() {
+  if (!selectedDate) return;
 
   db.collection("tasks").add({
-    title:document.getElementById("task-title").value,
-    description:document.getElementById("task-desc").value,
-    date:selectedDate,
-    completed:false,
-    priority:Date.now(),
-    createdAt:firebase.firestore.FieldValue.serverTimestamp()
-  }).then(()=>{
-    document.getElementById("task-title").value="";
-    document.getElementById("task-desc").value="";
+    title: document.getElementById("task-title").value,
+    description: document.getElementById("task-desc").value,
+    date: selectedDate,
+    completed: false,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    document.getElementById("task-title").value = "";
+    document.getElementById("task-desc").value = "";
     loadTasks();
   });
 }
 
-function loadTasks(){
-  const today=document.getElementById("today-tasks");
-  const carry=document.getElementById("carry-tasks");
-  const completed=document.getElementById("completed-tasks");
+function loadTasks() {
+  const today = document.getElementById("today-tasks");
+  const carry = document.getElementById("carry-tasks");
+  const completed = document.getElementById("completed-tasks");
 
-  today.innerHTML="";
-  carry.innerHTML="";
-  completed.innerHTML="";
+  today.innerHTML = "";
+  carry.innerHTML = "";
+  completed.innerHTML = "";
 
-  db.collection("tasks").get().then(snapshot=>{
-    snapshot.forEach(doc=>{
-      const t=doc.data();
-      const card=document.createElement("div");
-      card.className="task-card";
-      card.innerHTML=`<strong>${t.title}</strong><br>
-        <small>${t.description}</small>
-        <span onclick="openDelete('${doc.id}')"
-        style="float:right;cursor:pointer;">🗑</span>`;
+  db.collection("tasks").get().then(snapshot => {
+    snapshot.forEach(doc => {
+      const t = doc.data();
+      const card = document.createElement("div");
+      card.className = "task-card";
+      card.innerHTML =
+        `<strong>${t.title}</strong><br><small>${t.description}</small>
+         <span onclick="openDelete('${doc.id}')"
+         style="float:right;cursor:pointer;">🗑</span>`;
 
-      if(t.completed && t.date===selectedDate){
+      if (t.completed && t.date === selectedDate) {
         card.classList.add("completed");
         completed.appendChild(card);
       }
-      else if(t.date===selectedDate){
+      else if (t.date === selectedDate) {
         today.appendChild(card);
       }
-      else if(t.date<selectedDate && !t.completed){
+      else if (t.date < selectedDate && !t.completed) {
         card.classList.add("carry");
         carry.appendChild(card);
       }
     });
-
-    initDrag();
   });
 }
 
-function initDrag(){
-  new Sortable(document.getElementById("today-tasks"),{group:"tasks"});
-  new Sortable(document.getElementById("carry-tasks"),{group:"tasks"});
-  new Sortable(document.getElementById("completed-tasks"),{
-    group:"tasks",
-    onAdd:(evt)=>{
-      const id=evt.item.querySelector("span").getAttribute("onclick")
-        .match(/'(.+)'/)[1];
-      db.collection("tasks").doc(id).update({completed:true});
-    }
-  });
-}
-
-function showAnalytics(date){
+function showAnalytics(date) {
   db.collection("tasks").where("date","==",date).get()
-  .then(snapshot=>{
-    let total=0,completedCount=0;
-    snapshot.forEach(doc=>{
+  .then(snapshot => {
+    let total = 0;
+    let done = 0;
+
+    snapshot.forEach(doc => {
       total++;
-      if(doc.data().completed) completedCount++;
+      if (doc.data().completed) done++;
     });
-    const note=document.getElementById("analytics-note");
-    note.innerHTML=`<strong>${date}</strong><br>
+
+    const note = document.getElementById("analytics-note");
+    note.innerHTML = `
+      <strong>${date}</strong><br>
       Total: ${total}<br>
-      Completed: ${completedCount}<br>
-      Pending: ${total-completedCount}`;
-    note.style.display="block";
+      Completed: ${done}<br>
+      Pending: ${total - done}
+    `;
+    note.style.display = "block";
   });
 }
 
-function openDelete(id){
-  deleteId=id;
+function openDelete(id) {
+  deleteId = id;
   document.getElementById("delete-modal").classList.add("show");
 }
 
-function closeModal(){
+function closeModal() {
   document.getElementById("delete-modal").classList.remove("show");
 }
 
-function confirmDelete(){
+function confirmDelete() {
   db.collection("tasks").doc(deleteId).delete()
-  .then(()=>{
+  .then(() => {
     closeModal();
     loadTasks();
   });
