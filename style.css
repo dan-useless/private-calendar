@@ -5,7 +5,7 @@ body {
   color: #333;
 }
 
-/* Center login */
+/* Login Center */
 .center-container {
   display: flex;
   justify-content: center;
@@ -13,6 +13,7 @@ body {
   height: 100vh;
 }
 
+/* Card */
 .card {
   background: white;
   padding: 40px;
@@ -74,7 +75,7 @@ body {
   background: #dc2626;
 }
 
-/* Main layout */
+/* Layout */
 .main-layout {
   display: flex;
   gap: 30px;
@@ -97,6 +98,17 @@ body {
   box-shadow: 0 10px 30px rgba(0,0,0,0.05);
 }
 
+/* Hover and selected date */
+.fc-daygrid-day:hover {
+  background-color: #eef2ff !important;
+  cursor: pointer;
+}
+
+.fc-daygrid-day.selected-date {
+  background-color: #c7d2fe !important;
+}
+
+/* Task Input */
 .task-input {
   display: flex;
   gap: 10px;
@@ -123,7 +135,7 @@ body {
   background: #059669;
 }
 
-/* Task list */
+/* Task List */
 #task-list {
   list-style: none;
   padding: 0;
