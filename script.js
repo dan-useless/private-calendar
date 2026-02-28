@@ -16,8 +16,7 @@ let selectedDate = null;
 let deleteId = null;
 let calendarInstance = null;
 
-/* ---------------- AUTH ---------------- */
-
+/* AUTH */
 auth.onAuthStateChanged(user => {
   if (user) {
     document.getElementById("login-container").style.display = "none";
@@ -27,165 +26,114 @@ auth.onAuthStateChanged(user => {
 });
 
 function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  auth.signInWithEmailAndPassword(email, password)
-    .catch(() => {
-      document.getElementById("login-error").innerText = "Invalid login";
-    });
+  auth.signInWithEmailAndPassword(
+    document.getElementById("email").value,
+    document.getElementById("password").value
+  ).catch(() => {
+    document.getElementById("login-error").innerText = "Invalid login";
+  });
 }
 
-/* ---------------- CALENDAR ---------------- */
-
+/* CALENDAR */
 function initCalendar() {
-
-  if (calendarInstance) {
-    calendarInstance.destroy();
-  }
+  if (calendarInstance) calendarInstance.destroy();
 
   calendarInstance = new FullCalendar.Calendar(
     document.getElementById("calendar"),
     {
       initialView: "dayGridMonth",
-
       headerToolbar: {
         left: "prev,next today",
         center: "title",
         right: ""
       },
-
-      dateClick: function(info) {
+      dateClick: (info) => {
         selectedDate = info.dateStr;
         document.getElementById("selected-date-title")
           .innerText = "Tasks for " + selectedDate;
         loadTasks();
       },
-
-      dateMouseEnter: function(info) {
-        showAnalytics(info.dateStr);
-      },
-
-      dateMouseLeave: function() {
-        document.getElementById("analytics-note").style.display = "none";
-      }
+      dateMouseEnter: (info) => showAnalytics(info.dateStr),
+      dateMouseLeave: () =>
+        document.getElementById("analytics-note").style.display = "none"
     }
   );
 
   calendarInstance.render();
 }
 
-/* ---------------- TASK CREATION ---------------- */
-
+/* TASKS */
 function createTask() {
-
-  if (!selectedDate) {
-    alert("Select a date first.");
-    return;
-  }
-
-  const title = document.getElementById("task-title").value.trim();
-  const description = document.getElementById("task-desc").value.trim();
-
-  if (!title) return;
+  if (!selectedDate) return;
 
   db.collection("tasks").add({
-    title: title,
-    description: description,
+    title: document.getElementById("task-title").value,
+    description: document.getElementById("task-desc").value,
     date: selectedDate,
     completed: false,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  })
-  .then(() => {
+  }).then(() => {
     document.getElementById("task-title").value = "";
     document.getElementById("task-desc").value = "";
     loadTasks();
   });
 }
 
-/* ---------------- TASK LOADING ---------------- */
-
 function loadTasks() {
+  const today = document.getElementById("today-tasks");
+  const carry = document.getElementById("carry-tasks");
+  const completed = document.getElementById("completed-tasks");
 
-  const todayContainer = document.getElementById("today-tasks");
-  const carryContainer = document.getElementById("carry-tasks");
-  const completedContainer = document.getElementById("completed-tasks");
-
-  todayContainer.innerHTML = "";
-  carryContainer.innerHTML = "";
-  completedContainer.innerHTML = "";
+  today.innerHTML = "";
+  carry.innerHTML = "";
+  completed.innerHTML = "";
 
   db.collection("tasks").get().then(snapshot => {
-
     snapshot.forEach(doc => {
-
-      const task = doc.data();
-      const taskId = doc.id;
-
+      const t = doc.data();
       const card = document.createElement("div");
       card.className = "task-card";
-      card.innerHTML = `
-        <strong>${task.title}</strong><br>
-        <small>${task.description || ""}</small>
-        <span onclick="openDelete('${taskId}')" 
-        style="float:right;cursor:pointer;">🗑</span>
-      `;
+      card.innerHTML =
+        `<strong>${t.title}</strong><br><small>${t.description}</small>
+         <span onclick="openDelete('${doc.id}')"
+         style="float:right;cursor:pointer;">🗑</span>`;
 
-      // Completed tasks for selected date
-      if (task.completed && task.date === selectedDate) {
-        card.classList.add("completed");
-        completedContainer.appendChild(card);
+      if (t.completed && t.date === selectedDate) {
+        completed.appendChild(card);
+      } else if (t.date === selectedDate) {
+        today.appendChild(card);
+      } else if (t.date < selectedDate && !t.completed) {
+        carry.appendChild(card);
       }
-
-      // Tasks for selected date
-      else if (task.date === selectedDate) {
-        todayContainer.appendChild(card);
-      }
-
-      // Carry forward (older incomplete tasks)
-      else if (task.date < selectedDate && !task.completed) {
-        card.classList.add("carry");
-        carryContainer.appendChild(card);
-      }
-
     });
-
   });
 }
 
-/* ---------------- ANALYTICS ---------------- */
-
+/* ANALYTICS */
 function showAnalytics(date) {
+  db.collection("tasks").where("date","==",date).get()
+  .then(snapshot => {
 
-  db.collection("tasks")
-    .where("date", "==", date)
-    .get()
-    .then(snapshot => {
+    let total = snapshot.size;
+    let done = 0;
 
-      let total = 0;
-      let completedCount = 0;
-
-      snapshot.forEach(doc => {
-        total++;
-        if (doc.data().completed) completedCount++;
-      });
-
-      const pending = total - completedCount;
-
-      const note = document.getElementById("analytics-note");
-      note.innerHTML = `
-        <strong>${date}</strong><br><br>
-        Total Tasks: ${total}<br>
-        Completed: ${completedCount}<br>
-        Pending: ${pending}
-      `;
-
-      note.style.display = "block";
+    snapshot.forEach(doc => {
+      if (doc.data().completed) done++;
     });
+
+    const note = document.getElementById("analytics-note");
+    note.innerHTML = `
+      <strong>${date}</strong><br><br>
+      Total: ${total}<br>
+      Completed: ${done}<br>
+      Pending: ${total - done}
+    `;
+
+    note.style.display = "block";
+  });
 }
 
-/* ---------------- MODAL ---------------- */
-
+/* MODAL */
 function openDelete(id) {
   deleteId = id;
   document.getElementById("delete-modal").classList.add("show");
@@ -196,13 +144,9 @@ function closeModal() {
 }
 
 function confirmDelete() {
-
-  if (!deleteId) return;
-
   db.collection("tasks").doc(deleteId).delete()
-    .then(() => {
-      closeModal();
-      loadTasks();
-      deleteId = null;
-    });
+  .then(() => {
+    closeModal();
+    loadTasks();
+  });
 }
