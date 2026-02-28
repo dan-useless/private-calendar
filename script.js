@@ -16,7 +16,8 @@ let selectedDate = null;
 let deleteId = null;
 let calendarInstance = null;
 
-/* AUTH */
+/* ---------------- AUTH ---------------- */
+
 auth.onAuthStateChanged(user => {
   if (user) {
     document.getElementById("login-container").style.display = "none";
@@ -34,7 +35,7 @@ function login() {
   });
 }
 
-/* CALENDAR */
+/* ---------------- CALENDAR ---------------- */
 
 function initCalendar() {
 
@@ -58,12 +59,16 @@ function initCalendar() {
         loadTasks();
       },
 
-      dateMouseEnter: (info) => {
-        showAnalytics(info.dateStr);
-      },
+      dayCellDidMount: function(info) {
+        const cellDate = info.date.toISOString().split("T")[0];
 
-      dateMouseLeave: () => {
-        document.getElementById("analytics-note").style.display = "none";
+        info.el.addEventListener("mouseenter", () => {
+          showAnalytics(cellDate, info.el);
+        });
+
+        info.el.addEventListener("mouseleave", () => {
+          document.getElementById("analytics-note").style.display = "none";
+        });
       }
     }
   );
@@ -71,7 +76,7 @@ function initCalendar() {
   calendarInstance.render();
 }
 
-/* TASKS */
+/* ---------------- TASKS ---------------- */
 
 function createTask() {
   if (!selectedDate) return;
@@ -104,7 +109,8 @@ function loadTasks() {
       const card = document.createElement("div");
       card.className = "task-card";
       card.innerHTML =
-        `<strong>${t.title}</strong><br><small>${t.description}</small>
+        `<strong>${t.title}</strong><br>
+         <small>${t.description}</small>
          <span onclick="openDelete('${doc.id}')"
          style="float:right;cursor:pointer;">🗑</span>`;
 
@@ -119,34 +125,51 @@ function loadTasks() {
   });
 }
 
-/* ANALYTICS */
+/* ---------------- ANALYTICS ---------------- */
 
-function showAnalytics(date) {
+function showAnalytics(date, element) {
+
   db.collection("tasks")
-    .where("date","==",date)
+    .where("date", "==", date)
     .get()
     .then(snapshot => {
 
       let total = snapshot.size;
-      let done = 0;
+      let pendingTasks = [];
+      let completedCount = 0;
 
       snapshot.forEach(doc => {
-        if (doc.data().completed) done++;
+        const data = doc.data();
+        if (data.completed) {
+          completedCount++;
+        } else {
+          pendingTasks.push(data.title);
+        }
       });
 
       const note = document.getElementById("analytics-note");
+
+      let taskListHTML = "";
+
+      if (pendingTasks.length === 0) {
+        taskListHTML = "<em>No pending tasks</em>";
+      } else {
+        const limited = pendingTasks.slice(0, 5);
+        taskListHTML = limited.map(t => `• ${t}`).join("<br>");
+      }
+
       note.innerHTML = `
         <strong>${date}</strong><br><br>
-        Total: ${total}<br>
-        Completed: ${done}<br>
-        Pending: ${total - done}
+        Tasks Left: ${pendingTasks.length}<br>
+        Completed: ${completedCount}<br><br>
+        ${taskListHTML}
       `;
 
       note.style.display = "block";
     });
 }
 
-/* MODAL */
+/* ---------------- MODAL ---------------- */
 
 function openDelete(id) {
   deleteId = id;
@@ -159,8 +182,8 @@ function closeModal() {
 
 function confirmDelete() {
   db.collection("tasks").doc(deleteId).delete()
-  .then(() => {
-    closeModal();
-    loadTasks();
-  });
+    .then(() => {
+      closeModal();
+      loadTasks();
+    });
 }
